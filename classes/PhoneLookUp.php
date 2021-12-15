@@ -13,7 +13,9 @@ class PhoneLookUp
     const disabled_comment_2 = "comment-item   comment-item-ad  comment-disabled";
     const censored_tag = '/<span class="profanity" style="width:44px"><\/span>/';
 
-
+    /**
+     * Initialize class and set data for work
+     */
     public function __construct($phone)
     {
         $this->dom = new Dom;
@@ -22,6 +24,10 @@ class PhoneLookUp
         $this->dom->loadStr($this->source);
     }
 
+    /**
+     * input phone number and page number
+     * Getting html source code of current url and set into field
+     */
     public function curl(string $phone, int $page): ?bool
     {
         try {
@@ -41,6 +47,10 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Progress bar class on pages can be with different number in the end
+     *  so method check it and return class name
+     */
     public function checkBarExist(): ?bool
     {
         try {
@@ -57,6 +67,9 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Return location address. Working only with regional number
+     */
     public function getLocalAddress(): ?string
     {
         try {
@@ -75,7 +88,10 @@ class PhoneLookUp
         }
     }
 
-
+    /**
+     * Method to get danger value
+     * Return int value from 0 to 100 
+     */
     public function getDangerousRate(): ?int
     {
         try {
@@ -86,6 +102,10 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Method to get count of rate (comments)
+     * Return int integer value
+     */
     public function getCountRate(): ?int
     {
         try {
@@ -95,6 +115,10 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Method to get last date of rate in format dd.mm.yyyy
+     * Return string value
+     */
     public function getLastRateDate(): ?string
     {
         try {
@@ -108,6 +132,10 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Method to get total view
+     * Return int value
+     */
     public function getViewsCount(): ?int
     {
         try {
@@ -121,6 +149,10 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Method to get last date of rate in format dd.mm.yyyy
+     * Return string value
+     */
     public function getLastDateView(): ?string
     {
         try {
@@ -133,6 +165,10 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Method to get count of page to parse all comments
+     * Return int value
+     */
     public function getCountPages(): ?int
     {
         try {
@@ -148,6 +184,12 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Method to get comments
+     * Run throught all exist pages, find block with comment, 
+     * check if it deleted/disabled by moderator and getting rank and text
+     * Return array 
+     */
     public function getComments(): ?array
     {
         try {
@@ -162,14 +204,17 @@ class PhoneLookUp
                         $class = $this->dom->find('#' . $id)->getAttribute('class');
                         if ($class != self::disabled_comment_1 && $class != self::disabled_comment_2)
                             $comment_container = $this->dom->find('#' . $id)->innerHtml;
+                        //create new object to proccessing comment block
                         $local_dom = new Dom;
                         $local_dom->loadStr($comment_container);
                         $comments = $local_dom->find('.comment-text');
                         $rank = $local_dom->find('.rank')->innerHtml;
                         for ($j = 0; $j < count($comments); $j++) {
+                            //match source code comment with pattern spam message
                             if (trim($comments[$j]->innerHtml) != strtolower(self::spam_msg)) {
                                 $this->comments[$comments_counter]['rank'] = $rank;
                                 $this->comments[$comments_counter]['text'] = $comments[$j]->innerHtml;
+                                //replace swear words to [censored]
                                 $this->comments[$comments_counter]['text'] = preg_replace(self::censored_tag, '[censored]', $this->comments[$comments_counter]['text']);
                             }
                         }
@@ -183,6 +228,10 @@ class PhoneLookUp
         }
     }
 
+    /**
+     * Main method
+     * set array cells with data
+     */
     public function lookup(): ?array
     {
         try {
